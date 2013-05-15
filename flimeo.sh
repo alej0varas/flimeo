@@ -32,5 +32,7 @@ while [ $ans == 'n' ]
   timelength
 done
 
+## TODO
+# add function to choose an output name or leave default output name
 
 echo "here we call: ./createvideo $pathtopicts $FPS"

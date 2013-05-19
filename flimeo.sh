@@ -9,6 +9,9 @@ fi
 
 pathtopicts=$1
 FPS=$2
+outpath="/tmp/inyourface"
+generator="test.sh"
+
 
 pictnumber=$(find "$pathtopicts" -iname "*.JPG" -type f -print | wc -l)
 
@@ -32,7 +35,5 @@ while [ $ans == 'n' ]
   timelength
 done
 
-## TODO
-# add function to choose an output name or leave default output name
 
-echo "here we call: ./createvideo $pathtopicts $FPS"
+bash $generator $pathtopicts $FPS $outpath

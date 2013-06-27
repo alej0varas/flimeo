@@ -40,4 +40,4 @@ while [ $ans == 'n' ]
 done
 
 
-bash $generator $pathtopicts $FPS $outputpath
+bash $generator $pathtopicts $FPS $outputpath $outputname

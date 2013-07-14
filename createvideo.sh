@@ -32,7 +32,7 @@ c=0
 for file in $inputfiles
 do
     # echo $file $TMPDIR/$c.JPG
-    cp $file $tmp_dir/$c.JPG
+    cp -v $file $tmp_dir/$c.JPG
     c=$(($c+1))
 done
 
@@ -43,7 +43,7 @@ video_path=$output_dir/$(date +%s%N).mp4
 # call the video creation tool
 echo "starting video encoding"
 
-ffmpeg -loglevel quiet -r 10 -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $video_path
+ffmpeg -loglevel quiet -r 15 -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $video_path
 
 # clean tmp files
 rm -rfv $input_dir

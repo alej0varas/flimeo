@@ -1,56 +1,94 @@
 #!/usr/bin/env bash
 
+usage()
+{
+cat <<EOF
+usage: $0 options <path to images>
+
+This script run creates a video.
+
+OPTIONS:
+   -h      Show this message
+   -p      Path to images
+   -o      Specifie a diferent output dir
+   -t      Specifie a diferent TMPDIR
+   -f      Specifie a frame rate
+   -n      Specifie video file name
+   -v      Verbose
+EOF
+}
+
 # Check arguments
+# Get options
+FILE_FORMAT="mp4"
+ORIGIN_PATH=
+OUTPUT_DIR=$(mktemp -d)
+FRAME_RATE=30
+VIDEO_FILE_NAME=$(date +%s%N).mp4
+VERBOSE=
+while getopts “hp:o:t:f:n:v” OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         p)
+             ORIGIN_PATH=$OPTARG
+             ;;
+         o)
+             OUTPUT_DIR=$OPTARG
+             ;;
+         t)
+             export TMPDIR=$OPTARG
+             ;;
+         f)
+             FRAME_RATE=$OPTARG
+             ;;
+         n)
+             VIDEO_FILE_NAME=$OPTARG
+             ;;
+         v)
+             VERBOSE=1
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
 # Must be called with a path
-if [ "$1"x == x ]
+if [[ -z $ORIGIN_PATH ]]
 then
-    echo Must provide a path to the images
-    exit 0
-else
-    origin=$1
-fi
-
-# Can specifie a diferent output dir
-if [ "$2"x == x ]
- then
-    output_dir=$(mktemp -d)
-else
-    output_dir=$2
-fi
-
-# Can specifie a diferent TMPDIR
-if [ "$3" ]
- then
-    export TMPDIR=$3
-fi
-
-# Can specifie a frame rate
-if [ "$4"x == x ]
-then
-    frame_rate=30
-else
-    frame_rate=$4
+     usage
+     exit 1
 fi
 
 # Check origin path
-if [ ! -e $origin ]
+if [ ! -e $ORIGIN_PATH ]
 then
     echo Path doest not exist
     exit 0
 fi
 
-# Get tmpdir
+# Check video file name does't exist
+VIDEO_PATH=$OUTPUT_DIR/$VIDEO_FILE_NAME.$FILE_FORMAT
+count=1
+while [ -e $VIDEO_PATH ]
+do
+    VIDEO_PATH=$OUTPUT_DIR/"$VIDEO_FILE_NAME"_"$count"_.$FILE_FORMAT
+    count=$((count+1))
+done
+
+# Get and create tmpdir
 tmp_dir=$(mktemp -d --tmpdir flimeo.XXXXXXXXXX)
 
-mkdir -vp $tmp_dir
-
-# Get output file name
-video_path=$output_dir$(date +%s%N).mp4
-
 # Get confirmation from user
+echo "Origin path" $ORIGIN_PATH
 echo "Temporary directory" $tmp_dir
-echo "Output video" $video_path
-echo "Frame rate" $frame_rate
+echo "Output video" $VIDEO_PATH
+echo "Frame rate" $FRAME_RATE
 echo "Is it ok? (y/N)"
 read ans
 if [ "$ans" != 'y' ]
@@ -62,7 +100,7 @@ fi
 # mktemp -d $user-XXXXXXXXX --tmpdir
 input_dir=$(mktemp -d)
 # echo Copying files to $input_dir 
-cp -v $origin* $input_dir/
+cp -v $ORIGIN_PATH* $input_dir/
 
 inputfiles=$(find $input_dir -iname *.JPG -type f | sort)
 
@@ -78,11 +116,13 @@ done
 # Call the video creation tool
 echo "starting video encoding"
 
-ffmpeg -loglevel quiet -r $frame_rate -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $video_path
+echo ffmpeg -loglevel quiet -r $FRAME_RATE -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $VIDEO_PATH
+
+ffmpeg -loglevel quiet -r $FRAME_RATE -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $VIDEO_PATH
 
 # Clean tmp files
 rm -rfv $input_dir
 rm -rfv $tmp_dir
 
 # return video output path
-echo "$video_path"
+echo $VIDEO_PATH

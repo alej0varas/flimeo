@@ -3,7 +3,7 @@
 usage()
 {
 cat <<EOF
-usage: $0 options <path to images>
+usage: $0 -p <path to images> [options]
 
 This script run creates a video.
 

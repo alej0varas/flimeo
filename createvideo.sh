@@ -1,33 +1,72 @@
 #!/usr/bin/env bash
 
-# check arguments, must be called with a path
-if [ $@ ]
+# Check arguments
+# Must be called with a path
+if [ "$1"x == x ]
 then
-    origin=$@
-else
-    echo Must provide a path to the images without trailing slash
+    echo Must provide a path to the images
     exit 0
+else
+    origin=$1
 fi
 
-# import pictures from path
+# Can specifie a diferent output dir
+if [ "$2"x == x ]
+ then
+    output_dir=$(mktemp -d)
+else
+    output_dir=$2
+fi
+
+# Can specifie a diferent TMPDIR
+if [ "$3" ]
+ then
+    export TMPDIR=$3
+fi
+
+# Can specifie a frame rate
+if [ "$4"x == x ]
+then
+    frame_rate=30
+else
+    frame_rate=$4
+fi
+
+# Check origin path
 if [ ! -e $origin ]
 then
     echo Path doest not exist
     exit 0
 fi
 
+# Get tmpdir
+tmp_dir=$(mktemp -d --tmpdir flimeo.XXXXXXXXXX)
+
+mkdir -vp $tmp_dir
+
+# Get output file name
+video_path=$output_dir$(date +%s%N).mp4
+
+# Get confirmation from user
+echo "Temporary directory" $tmp_dir
+echo "Output video" $video_path
+echo "Frame rate" $frame_rate
+echo "Is it ok? (y/N)"
+read ans
+if [ "$ans" != 'y' ]
+  then
+    exit 0
+fi
+
+# Copy original images to a input tmp dir
 # mktemp -d $user-XXXXXXXXX --tmpdir
 input_dir=$(mktemp -d)
 # echo Copying files to $input_dir 
-cp -v $origin/* $input_dir/
-
-# rename pictures, workaround to ffmpeg bug
-tmp_dir=$(mktemp -d)
-# echo Renaming files to $tmp_dir 
-mkdir -vp $tmp_dir
+cp -v $origin* $input_dir/
 
 inputfiles=$(find $input_dir -iname *.JPG -type f | sort)
 
+# Rename pictures, workaround to ffmpeg bug
 c=0
 for file in $inputfiles
 do
@@ -36,16 +75,12 @@ do
     c=$(($c+1))
 done
 
-output_dir=$(mktemp -d)
-
-video_path=$output_dir/$(date +%s%N).mp4
-
-# call the video creation tool
+# Call the video creation tool
 echo "starting video encoding"
 
-ffmpeg -loglevel quiet -r 15 -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $video_path
+ffmpeg -loglevel quiet -r $frame_rate -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $video_path
 
-# clean tmp files
+# Clean tmp files
 rm -rfv $input_dir
 rm -rfv $tmp_dir
 

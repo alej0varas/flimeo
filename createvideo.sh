@@ -68,8 +68,8 @@ fi
 # Check origin path
 if [ ! -e $ORIGIN_PATH ]
 then
-    echo Path doest not exist
-    exit 0
+    echo Path $ORIGIN_PATH doest not exist
+    exit 1
 fi
 
 # Check video file name does't exist
@@ -84,10 +84,18 @@ done
 # Get and create tmpdir
 tmp_dir=$(mktemp -d --tmpdir flimeo.XXXXXXXXXX)
 
+if [[ $VERBOSE == 1 ]]
+then
+    verbose_option="-v"
+    ffmpeg_verbose_option="info"
+else
+    ffmpeg_verbose_option="quiet"
+fi
+
 # Get confirmation from user
 echo "Origin path" $ORIGIN_PATH
-echo "Temporary directory" $tmp_dir
 echo "Output video" $VIDEO_PATH
+echo "Temporary directory" $tmp_dir
 echo "Frame rate" $FRAME_RATE
 echo "Is it ok? (y/N)"
 read ans
@@ -97,10 +105,9 @@ if [ "$ans" != 'y' ]
 fi
 
 # Copy original images to a input tmp dir
-# mktemp -d $user-XXXXXXXXX --tmpdir
 input_dir=$(mktemp -d)
-# echo Copying files to $input_dir 
-cp -v $ORIGIN_PATH* $input_dir/
+cp $verbose_option $ORIGIN_PATH* $input_dir/
+
 
 inputfiles=$(find $input_dir -iname *.JPG -type f | sort)
 
@@ -108,21 +115,18 @@ inputfiles=$(find $input_dir -iname *.JPG -type f | sort)
 c=0
 for file in $inputfiles
 do
-    # echo $file $TMPDIR/$c.JPG
-    cp -v $file $tmp_dir/$c.JPG
+    cp $verbose_option $file $tmp_dir/$c.JPG
     c=$(($c+1))
 done
 
 # Call the video creation tool
-echo "starting video encoding"
+echo "Starting video encoding"
 
-echo ffmpeg -loglevel quiet -r $FRAME_RATE -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $VIDEO_PATH
-
-ffmpeg -loglevel quiet -r $FRAME_RATE -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $VIDEO_PATH
+ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s hd480 -vcodec libx264 $VIDEO_PATH
 
 # Clean tmp files
-rm -rfv $input_dir
-rm -rfv $tmp_dir
+rm -rf $verbose_option $input_dir
+rm -rf $verbose_option $tmp_dir
 
 # return video output path
 echo $VIDEO_PATH

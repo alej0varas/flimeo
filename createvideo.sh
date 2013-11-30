@@ -5,15 +5,15 @@ usage()
 cat <<EOF
 usage: $0 -p <path to images> [options]
 
-This script run creates a video.
+This script creates a video.
 
 OPTIONS:
    -h      Show this message
    -p      Path to images
-   -o      Specifie a diferent output dir
-   -t      Specifie a diferent TMPDIR
-   -f      Specifie a frame rate
-   -n      Specifie video file name
+   -o      Specify a diferent output dir
+   -t      Specify a diferent TMPDIR
+   -f      Specify a frame rate
+   -n      Specify video file name
    -v      Verbose
 EOF
 }
@@ -22,9 +22,9 @@ EOF
 # Get options
 FILE_FORMAT="mp4"
 ORIGIN_PATH=
-OUTPUT_DIR=$(mktemp -d)
+OUTPUT_DIR=$(mktemp -d --tmpdir=.)
 FRAME_RATE=30
-VIDEO_FILE_NAME=$(date +%s%N).mp4
+VIDEO_FILE_NAME=$(date +%s%N)
 VERBOSE=
 while getopts “hp:o:t:f:n:v” OPTION
 do
@@ -82,7 +82,7 @@ do
 done
 
 # Get and create tmpdir
-tmp_dir=$(mktemp -d --tmpdir flimeo.XXXXXXXXXX)
+tmp_dir=$(mktemp -d --tmpdir=.)
 
 if [[ $VERBOSE == 1 ]]
 then
@@ -101,11 +101,12 @@ echo "Is it ok? (y/N)"
 read ans
 if [ "$ans" != 'y' ]
   then
+  # needs function to createi/delete tmpdirs  here
     exit 0
 fi
 
 # Copy original images to a input tmp dir
-input_dir=$(mktemp -d)
+input_dir=$(mktemp -d --tmpdir=.)
 cp $verbose_option $ORIGIN_PATH* $input_dir/
 
 
@@ -115,7 +116,7 @@ inputfiles=$(find $input_dir -iname *.JPG -type f | sort)
 c=0
 for file in $inputfiles
 do
-    cp $verbose_option $file $tmp_dir/$c.JPG
+    cp $verbose_option "$file" $tmp_dir/$c.JPG
     c=$(($c+1))
 done
 

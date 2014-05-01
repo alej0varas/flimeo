@@ -8,7 +8,7 @@ sudo apt-get remove ffmpeg x264 libav-tools libvpx-dev libx264-dev yasm
 sudo apt-get update
 sudo apt-get -y install autoconf automake build-essential checkinstall git libass-dev libfaac-dev \
   libgpac-dev libmp3lame-dev libopencore-amrnb-dev libopencore-amrwb-dev librtmp-dev libspeex-dev \
-  libtheora-dev libtool libvorbis-dev pkg-config texi2html zlib1g-dev
+  libtheora-dev libtool libvorbis-dev pkg-config texi2html zlib1g-dev 
 
 # Yasm
 # Yasm is an assembler and is recommended for x264 and FFmpeg.
@@ -40,6 +40,8 @@ sudo checkinstall --pkgname=x264 --pkgversion="3:$(./version.sh | \
 
 # FFmpeg
 # Note: Ubuntu Server users should remove --enable-x11grab from the following command:
+
+sudo apt-get install -y libx264-dev 
 
 cd
 git clone --depth 1 git://source.ffmpeg.org/ffmpeg
@@ -89,6 +91,8 @@ checkinstall --pkgname=x264 --pkgversion="3:$(./version.sh | \
 
 # uninstall dpkg -r x264
 
+apt-get install -y libx264-dev 
+
 cd
 git clone --depth 1 git://source.ffmpeg.org/ffmpeg
 cd ffmpeg
@@ -108,11 +112,19 @@ hash -r
 
 SUDO=$1
 
+set +x
 if [ x$SUDO = x"sudo" ]
-	#then wsudo
 	then echo "wsudo"
-elif which sudo 
-	then echo "wich sudo"
+	read a
+	wsudo
+elif which sudo > /dev/null
+	then 
+	echo "wich sudo"
+	read a 
+	wsudo
 else 
 	echo "nosudo"
+	read a
+	nosudo
 fi
+set -x

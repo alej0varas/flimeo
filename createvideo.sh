@@ -101,7 +101,7 @@ echo "Is it ok? (y/N)"
 read ans
 if [ "$ans" != 'y' ]
   then
-  # needs function to createi/delete tmpdirs  here
+  # needs function to create/delete tmpdirs  here
     exit 0
 fi
 
@@ -110,11 +110,12 @@ input_dir=$(mktemp -d --tmpdir=.)
 cp $verbose_option $ORIGIN_PATH* $input_dir/
 
 
-inputfiles=$(find $input_dir -iname *.JPG -type f | sort)
+#inputfiles="$(find $input_dir -iname *.JPG -type f | sort)"
 
 # Rename pictures, workaround to ffmpeg bug
 c=0
-for file in $inputfiles
+#for file in $inputfiles
+for file in $(find $input_dir -iname "*.JPG" -type f -exec ls -1rt {} \;)
 do
     cp $verbose_option "$file" $tmp_dir/$c.JPG
     c=$(($c+1))

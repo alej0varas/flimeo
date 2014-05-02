@@ -1,20 +1,37 @@
 #!/bin/bash
 # flimeo.sh
 
+usage()
+{
+cat <<EOF
+
+Usage: $0 <path> <FPS> <low|med|hig> [output path]
+This script creates a time lapse video.
+EOF
+}
+
 echo "Hello, this is flimeo, the best time lapse generator *ever*"
 if [[ $# -lt 2 ]]
-  then echo "Usage: $0 <path> FPS <output path>"
+  #then echo "Usage: $0 <path> <FPS> <low|med|hig> [output path]"
+  then usage
   exit 0
 fi
 
 pathtopicts=$1
 FPS=$2
-#if [ "$3"x == x ]
-# then outputpath="/tmp/inyourface"
-#else
-#outputpath=$3
-#fi
-
+case $3 in
+	low)
+	quality=hd480
+	;;
+	med)
+	quality=hd720
+	;;
+	hig)
+	quality=hd1080
+	;;
+	*)
+	quality=hd480
+esac 
 
 pictnumber=$(find "$pathtopicts" -iname "*.JPG" -type f -print | wc -l)
 
@@ -39,14 +56,6 @@ while [ $ans == 'n' ]
 done
 
 
-usage()
-{
-cat <<EOF
-usage: $0 <path to images> <FPS> [output dir] 
-
-This script creates a video.
-EOF
-}
 
 # Check arguments
 # Get options
@@ -108,7 +117,8 @@ done
 # Call the video creation tool
 echo "Starting video encoding"
 
-ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s hd1080 -vcodec libx264  -pix_fmt yuv420p $VIDEO_PATH
+ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  $VIDEO_PATH
+#ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  -pix_fmt yuv420p $VIDEO_PATH
 
 # Clean tmp files
 #rm -rf $verbose_option $input_dir
@@ -116,3 +126,4 @@ rm -rf $verbose_option $tmp_dir
 
 # return video output path
 echo $VIDEO_PATH
+du -h $VIDEO_PATH

@@ -41,6 +41,9 @@ sudo checkinstall --pkgname=x264 --pkgversion="3:$(./version.sh | \
 # FFmpeg
 # Note: Ubuntu Server users should remove --enable-x11grab from the following command:
 
+# Note II: recent versions of ffmepg doesn't include librtmp, which is not mandatory 
+# for timelapse. If compilation fails, try removing '--enable-librtmp' from the following command: 
+
 sudo apt-get install -y libx264-dev 
 
 cd

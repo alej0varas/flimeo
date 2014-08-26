@@ -5,8 +5,6 @@ ffmpeg
 ------
 use install.sh to install ffmpeg the first time
 
-timelape
+timelapse
 --------
 use flimeo.sh to create your timelapses (tested with a GoPro as source)
-
-

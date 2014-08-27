@@ -5,7 +5,7 @@ usage()
 {
 cat <<EOF
 
-Usage: $0 <path> <FPS> <low|med|hig> [output path]
+Usage: $0 <path> <FPS> <low|med|hig> <raw|jpeg> [output path]
 This script creates a time lapse video.
 EOF
 }
@@ -32,6 +32,18 @@ case $3 in
 	*)
 	quality=hd480
 esac 
+
+case $4 in 
+	jpeg)
+	pformat=JPG
+	;;
+	raw)
+	pformat=DNG
+	find "$pathtopicts" -iname "*.$pformat" -type f -exec convert -verbose {} {}.jpg \;
+	;;
+	*)
+	usage
+esac
 
 pictnumber=$(find "$pathtopicts" -iname "*.JPG" -type f -print | wc -l)
 
@@ -107,7 +119,7 @@ input_dir=$(mktemp -d --tmpdir=.)
 # Rename pictures, workaround to ffmpeg bug
 c=0
 #for file in $inputfiles
-for file in $(find $ORIGIN_PATH -iname "*.JPG" -type f -exec ls -1rt {} \;)
+for file in $(find $ORIGIN_PATH -iname "*.JPG" -type f -exec ls -1rt {} \; | sort)
 do
     #cp $verbose_option "$file" $tmp_dir/$c.JPG
     ln -s $verbose_option "$file" $tmp_dir/$c.JPG

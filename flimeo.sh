@@ -122,7 +122,7 @@ c=0
 for file in $(find $ORIGIN_PATH -iname "*.JPG" -type f -exec ls -1rt {} \; | sort)
 do
     #cp $verbose_option "$file" $tmp_dir/$c.JPG
-    ln -s $verbose_option "$file" $tmp_dir/$c.JPG
+    ln -s $verbose_option ../"$file" $tmp_dir/$c.JPG
     c=$(($c+1))
 done
 

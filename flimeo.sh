@@ -1,6 +1,8 @@
 #!/bin/bash
 # flimeo.sh
 
+FFMPEG_BINARY_PATH=${FFMPEG_BINARY_PATH-local/bin/ffmpeg}
+
 usage()
 {
 cat <<EOF
@@ -129,7 +131,7 @@ done
 # Call the video creation tool
 echo "Starting video encoding"
 
-ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  $VIDEO_PATH
+$FFMPEG_BINARY_PATH -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  $VIDEO_PATH
 #ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  -pix_fmt yuv420p $VIDEO_PATH
 
 # Clean tmp files

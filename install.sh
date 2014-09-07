@@ -25,7 +25,7 @@ ARCH=`uname -m`
 
 if [ "$ARCH" = "i686" ]
   then BINARY_URL=http://ffmpeg.gusari.org/static/32bit/ffmpeg.static.32bit.latest.tar.gz
-elif [ "$ARCH" = 'x86_64']
+elif [ "$ARCH" = "x86_64" ]
   then BINARY_URL=http://ffmpeg.gusari.org/static/64bit/ffmpeg.static.64bit.latest.tar.gz
 fi
 

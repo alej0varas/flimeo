@@ -114,7 +114,7 @@ else
 fi
 
 # Copy original images to a input tmp dir
-input_dir=$(mktemp -d --tmpdir=.)
+# input_dir=$(mktemp -d --tmpdir=.)
 #cp $verbose_option $ORIGIN_PATH* $input_dir/
 
 

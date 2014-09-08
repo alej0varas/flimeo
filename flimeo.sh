@@ -75,7 +75,7 @@ done
 # Get options
 FILE_FORMAT="mp4"
 ORIGIN_PATH=$pathtopicts
-OUTPUT_DIR=$(mktemp -d --tmpdir=.)
+OUTPUT_DIR=$(mktemp -d --tmpdir=. output.XXX)
 FRAME_RATE=$FPS
 VIDEO_FILE_NAME=$(date +%s%N)
 VERBOSE=1

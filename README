@@ -6,5 +6,20 @@ ffmpeg
 use install.sh to install ffmpeg the first time
 
 timelapse
---------
+---------
 use flimeo.sh to create your timelapses (tested with a GoPro and a Pentax-K30 as source)
+
+
+Testing
+=======
+
+To speed up testing use a custom url for ffmpeg download
+
+  FFMPEG_BINARY_URL=http://0.0.0.0:8000/ffmpeg.tar.gz
+
+Also serve the previousley downloaded file localy.
+
+With Python
+
+- 2.7: $ python2.7 -m SimpleHTTPServer 8000
+- 3.x: $ python -m http.server 8000

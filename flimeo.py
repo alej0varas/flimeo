@@ -6,19 +6,29 @@
 
 import argparse
 parser = argparse.ArgumentParser(description='Flimeo, the best timelapse generator *ever*')
-parser.add_argument('--jpg', dest='ext')
+parser.add_argument('--source', help="set the source files type (jpeg, raw", choices=['jpeg','raw'])
+parser.add_argument('--path', help="path to source files", dest="path")
+parser.add_argument('--FPS', help="frames per second of the video", type=int, dest="fps", default=25)
 
 
 import PIL
 import glob
 import os
+import sys
 
+args= parser.parse_args()
+#print(args.source)
 
+ext=args.source
+if ext == 'raw':
+  ext = ['*.RAW', '*.raw']
+elif ext == 'jpeg':
+  ext = ['*.jpg', '*.JPG'] 
+else:
+  parser.print_help()
+  sys.exit(0)
 
-ext=''
-jpgext = ['*.jpg', '*.JPG'] 
-rawext = ['*.RAW', '*.raw']
-for i in jpgext:
+for i in ext:
   path= os.getcwd() + "/sample_picts/" + i 
   print(path)
   a = glob.glob(path)

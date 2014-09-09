@@ -3,8 +3,8 @@ README
 
 ffmpeg
 ------
-use install.sh to install ffmpeg the first time
+use install.py to install ffmpeg the first time
 
 timelapse
 --------
-use flimeo.sh to create your timelapses (tested with a GoPro and a Pentax-K30 as source)
+use flimeo.py to create your timelapses (tested with a GoPro and a Pentax-K30 as source)

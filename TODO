@@ -1,3 +1,4 @@
 1-
-original install.py deleted (was a copy of install.sh)
-create a new install.py
+Add tests for install.py
+ - download fail
+

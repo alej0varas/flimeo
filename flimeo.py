@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser(description='Flimeo, the best timelapse generat
 parser.add_argument('--source', help="set the source files type (jpeg, raw", choices=['jpeg','raw'])
 parser.add_argument('--path', help="path to source files", dest="path")
 parser.add_argument('--FPS', help="frames per second of the video", type=int, dest="fps", default=25)
+parser.add_argument('--quality', help="output video quality low|med|hig", type=str, dest="videoq", default="med")
 
 
 import PIL
@@ -28,35 +29,28 @@ else:
   parser.print_help()
   sys.exit(0)
 
+fps = args.fps
 for i in ext:
   path= os.getcwd() + "/sample_picts/" + i 
-  print(path)
+  #print(path)
   a = glob.glob(path)
   a.sort()
-  print(a)
+  if a != []:
+    #print(a)
+    pictlist = a
+    #print pictlist
+    pictnum = len(pictlist)
+    timelapseduration = pictnum / fps
+    print("frames: %s, frames per second: %d,\ntime-lapse duration: %s" %(pictnum,fps,timelapseduration))
+    ## TODO
+    ## add yes/no loop 
+    ans = raw_input("Is it ok? (y/N)")
+    if ans == "y":
+      print("doing it")
+      #call ffmpeg and so on
+    else:
+      print("set new fps value")
 
-
-#!/bin/bash
-# flimeo.sh
-
-#usage()
-#{
-#cat <<EOF
-#
-#Usage: $0 <path> <FPS> <low|med|hig> <raw|jpeg> [output path]
-#This script creates a time lapse video.
-#EOF
-#}
-#
-#echo "Hello, this is flimeo, the best time lapse generator *ever*"
-#if [[ $# -lt 2 ]]
-#  #then echo "Usage: $0 <path> <FPS> <low|med|hig> [output path]"
-#  then usage
-#  exit 0
-#fi
-#
-#pathtopicts=$1
-#FPS=$2
 #case $3 in
 #	low)
 #	quality=hd480
@@ -71,17 +65,6 @@ for i in ext:
 #	quality=hd480
 #esac 
 #
-#case $4 in 
-#	jpeg)
-#	pformat=JPG
-#	;;
-#	raw)
-#	pformat=DNG
-#	find "$pathtopicts" -iname "*.$pformat" -type f -exec convert -verbose {} {}.jpg \;
-#	;;
-#	*)
-#	usage
-#esac
 #
 #pictnumber=$(find "$pathtopicts" -iname "*.JPG" -type f -print | wc -l)
 #

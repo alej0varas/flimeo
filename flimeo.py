@@ -6,7 +6,7 @@
 
 import argparse
 parser = argparse.ArgumentParser(description='Flimeo, the best timelapse generator *ever*')
-parser.add_argument('--source', help="set the source files type (jpeg, raw", choices=['jpeg','raw'])
+parser.add_argument('--iformat', help="set the source files type (jpeg, raw)", choices=['jpeg','raw'])
 parser.add_argument('--path', help="path to source files", dest="path")
 parser.add_argument('--FPS', help="frames per second of the video", type=int, dest="fps", default=25)
 parser.add_argument('--quality', help="output video quality low|med|hig", type=str, dest="videoq", default="med")
@@ -18,9 +18,9 @@ import os
 import sys
 
 args= parser.parse_args()
-#print(args.source)
+#print(args.iformat)
 
-ext=args.source
+ext=args.iformat
 if ext == 'raw':
   ext = ['*.RAW', '*.raw']
 elif ext == 'jpeg':
@@ -28,6 +28,19 @@ elif ext == 'jpeg':
 else:
   parser.print_help()
   sys.exit(0)
+
+def pretimelapse(pictnum, fps):
+  timelapseduration = pictnum / fps
+  print("frames: %s, frames per second: %d,\ntime-lapse duration: %s" %(pictnum,fps,timelapseduration))
+  ans = raw_input("Is it ok? (y/N)")
+  if ans == "y" or ans == "Y":
+    print("doing it, master")
+    #call ffmpeg and so on
+  else:
+    fps = raw_input("set new fps value: ")
+    fps = int(fps)
+    pretimelapse(pictnum, fps)
+  return timelapseduration 
 
 fps = args.fps
 for i in ext:
@@ -40,16 +53,8 @@ for i in ext:
     pictlist = a
     #print pictlist
     pictnum = len(pictlist)
-    timelapseduration = pictnum / fps
-    print("frames: %s, frames per second: %d,\ntime-lapse duration: %s" %(pictnum,fps,timelapseduration))
-    ## TODO
-    ## add yes/no loop 
-    ans = raw_input("Is it ok? (y/N)")
-    if ans == "y":
-      print("doing it")
-      #call ffmpeg and so on
-    else:
-      print("set new fps value")
+    pretimelapse(pictnum, fps)
+      
 
 #case $3 in
 #	low)

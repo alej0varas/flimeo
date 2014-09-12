@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-##
-## Here we start porting everything to python
-##
-
 import argparse
-parser = argparse.ArgumentParser(description='Flimeo, the best timelapse generator *ever*')
+parser = argparse.ArgumentParser(description='Flimeo, the best time-lapse generator *ever*')
 parser.add_argument('--iformat', help="set the source files type (jpeg, raw)", choices=['jpeg','raw'])
-parser.add_argument('--path', help="path to source files", dest="path")
+parser.add_argument('--ipath', help="path to source files", dest="ipath")
+parser.add_argument('--opath', help="output path", dest="opath", default="temp")
 parser.add_argument('--FPS', help="frames per second of the video", type=int, dest="fps", default=25)
 parser.add_argument('--quality', help="output video quality low|med|hig", type=str, dest="videoq", default="med")
 
@@ -17,10 +14,17 @@ import glob
 import os
 import sys
 
-args= parser.parse_args()
-#print(args.iformat)
+if len(sys.argv) <= 1:
+  parser.print_help()
+  sys.exit(0)
 
+args= parser.parse_args()
+fps = args.fps
+path = args.ipath
+apath = os.path.abspath(path)
+outputpath = args.opath
 ext=args.iformat
+
 if ext == 'raw':
   ext = ['*.RAW', '*.raw']
 elif ext == 'jpeg':
@@ -28,6 +32,7 @@ elif ext == 'jpeg':
 else:
   parser.print_help()
   sys.exit(0)
+
 
 def pretimelapse(pictnum, fps):
   timelapseduration = pictnum / fps
@@ -38,22 +43,40 @@ def pretimelapse(pictnum, fps):
     #call ffmpeg and so on
   else:
     fps = raw_input("set new fps value: ")
+    # add test to check if fps is integer
     fps = int(fps)
     pretimelapse(pictnum, fps)
   return timelapseduration 
 
-fps = args.fps
-for i in ext:
-  path= os.getcwd() + "/sample_picts/" + i 
-  #print(path)
-  a = glob.glob(path)
-  a.sort()
-  if a != []:
-    #print(a)
-    pictlist = a
+def FfmpegWrapper(tmpath, fps, outputpath):
+  print("%s %d %s" %(tmpath, fps, outputpath))
+
+
+print(path)
+print(apath)
+
+pictures = []
+import fnmatch
+for root, dirs, files in os.walk(apath):
+  for extensions in ext:
+    for filename in fnmatch.filter(files, extensions):
+      print(os.path.join(root, filename))
+      pictures.append(os.path.join(root, filename))
+
+print("/\--unsorted/sorted--\/")
+pictures.sort()
+for i in range(len(pictures)):
+  print(pictures[i])
+  #path= os.getcwd() + "/sample_picts/" + i 
+  #a = glob.glob(apath)
+  #a.sort()
+  
+#  if a != []:
+#    #print(a)
+#    pictlist = a
     #print pictlist
-    pictnum = len(pictlist)
-    pretimelapse(pictnum, fps)
+#    pictnum = len(pictlist)
+#    pretimelapse(pictnum, fps)
       
 
 #case $3 in
@@ -70,45 +93,6 @@ for i in ext:
 #	quality=hd480
 #esac 
 #
-#
-#pictnumber=$(find "$pathtopicts" -iname "*.JPG" -type f -print | wc -l)
-#
-#function timelength {
-#duration=`expr $pictnumber / $FPS `
-#echo "estimated video duration: $duration s"
-#echo "is it ok? (y/N)"
-#read ans
-#if [ "$ans"x == 'x' ]
-#  then ans="n"
-#fi
-#}
-#
-#timelength
-#while [ $ans == 'n' ]
-#  do echo "set new FPS value: "
-#  read FPS
-#  if [ "$FPS"x == 'x' ]
-#    then FPS=5
-#  fi 
-#  timelength
-#done
-#
-#
-#
-## Check arguments
-## Get options
-#FILE_FORMAT="mp4"
-#ORIGIN_PATH=$pathtopicts
-#OUTPUT_DIR=$(mktemp -d --tmpdir=.)
-#FRAME_RATE=$FPS
-#VIDEO_FILE_NAME=$(date +%s%N)
-#VERBOSE=1
-## Must be called with a path
-#if [[ -z $ORIGIN_PATH ]]
-#then
-#     usage
-#     exit 1
-#fi
 #
 ## Check origin path
 #if [ ! -e $ORIGIN_PATH ]

@@ -1,17 +1,24 @@
 #!/bin/env python
 
-# #
-# # Cleanup
-# #
+import logging
+import platform
+import os
+import sys
+import tarfile
+import tempfile
+import urllib.request
 
-# rm -rf tmp
+
+FAIL_TO_DOWNLOAD = 1
+
+
+def cleanup(directory):
+    """Removes temporary files created during install"""
+    os.rmdir(directory)
+    logging.debug("deleted: {}".format(directory))
+
+
 def main():
-    import logging
-    import platform
-    import os
-    import tarfile
-    import tempfile
-    import urllib.request
 
     logging.basicConfig(level=logging.DEBUG)
 
@@ -42,7 +49,13 @@ def main():
     #wget $FFMPEG_BINARY_URL --output-document=tmp/ffmpeg.tar.gz
     FFMPEG_BINARY_URL = os.environ.get('FFMPEG_BINARY_URL', 'http://ffmpeg.gusari.org/static/{0}bit/ffmpeg.static.{0}bit.latest.tar.gz'.format(architecture))
     logging.debug("ffmpeg binary url: {}".format(FFMPEG_BINARY_URL))
-    local_filename, headers = urllib.request.urlretrieve(FFMPEG_BINARY_URL)
+    try:
+        local_filename, headers = urllib.request.urlretrieve(FFMPEG_BINARY_URL)
+    except:
+        sys.stdout.write('Failed to download ffmpeg\n')
+        cleanup(download_directory)
+        sys.exit(FAIL_TO_DOWNLOAD)
+
     logging.debug("local filename: {}:".format(local_filename))
 
     #tar -C tmp -xf tmp/ffmpeg.tar.gz
@@ -54,13 +67,8 @@ def main():
     content.close()
     urllib.request.urlcleanup()
 
-    #
-    # Cleanup
-    #
+    cleanup(download_directory)
 
-    # rm -rf tmp
-    os.rmdir(download_directory)
-    logging.debug("deleted: {}".format(download_directory))
 
 if __name__ == "__main__":
     main()

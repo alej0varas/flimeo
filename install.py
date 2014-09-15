@@ -6,7 +6,12 @@ import os
 import sys
 import tarfile
 import tempfile
-import urllib.request
+try:
+  import urllib.request
+except ImportError:
+  print("Please use python3 for this")
+  sys.exit(0)
+
 
 
 FAIL_TO_DOWNLOAD = 1

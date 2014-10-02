@@ -1,9 +1,15 @@
 README
 ======
 
-ffmpeg
-------
+dependecies
+-----------
+
+* ffmpeg
 use install.py to install ffmpeg the first time
+
+
+* PIL
+install pillow (python3-pil on debian-like systems)
 
 timelapse
 --------

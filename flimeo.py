@@ -1,151 +1,124 @@
 #!/usr/bin/env python
-
 import argparse
-parser = argparse.ArgumentParser(description='Flimeo, the best time-lapse generator *ever*')
-parser.add_argument('--iformat', help="set the source files type (jpeg, raw)", choices=['jpeg','raw'])
-parser.add_argument('--ipath', help="path to source files", dest="ipath")
-parser.add_argument('--opath', help="output path", dest="opath", default="temp")
-parser.add_argument('--FPS', help="frames per second of the video", type=int, dest="fps", default=25)
-parser.add_argument('--quality', help="output video quality low|med|hig", type=str, dest="videoq", default="med")
-
-
-import PIL
 import glob
 import os
 import sys
 
-if len(sys.argv) <= 1:
-  parser.print_help()
-  sys.exit(0)
-
-args= parser.parse_args()
-fps = args.fps
-path = args.ipath
-apath = os.path.abspath(path)
-outputpath = args.opath
-ext=args.iformat
-
-if ext == 'raw':
-  ext = ['*.RAW', '*.raw']
-elif ext == 'jpeg':
-  ext = ['*.jpg', '*.JPG'] 
-else:
-  parser.print_help()
-  sys.exit(0)
+import PIL
 
 
-def pretimelapse(pictnum, fps):
-  timelapseduration = pictnum / fps
-  print("frames: %s, frames per second: %d,\ntime-lapse duration: %s" %(pictnum,fps,timelapseduration))
-  ans = raw_input("Is it ok? (y/N)")
-  if ans == "y" or ans == "Y":
-    print("doing it, master")
-    #call ffmpeg and so on
-  else:
-    fps = raw_input("set new fps value: ")
-    # add test to check if fps is integer
-    fps = int(fps)
-    pretimelapse(pictnum, fps)
-  return timelapseduration 
-
-def FfmpegWrapper(tmpath, fps, outputpath):
-  print("%s %d %s" %(tmpath, fps, outputpath))
+FFMPEG_BINARY_PATH = os.environ.get('FFMPEG_BINARY_PATH', "local/bin/ffmpeg")
+EXTENSIONS = ['.jpeg', '.jpg', '.raw']
 
 
-print(path)
-print(apath)
+def get_quality(quality):
+    qualities = {
+        'low': 'hd480',
+        'med': 'hd720',
+        'hig': 'hd1080',
+    }
+    return qualities[quality]
 
-pictures = []
-import fnmatch
-for root, dirs, files in os.walk(apath):
-  for extensions in ext:
-    for filename in fnmatch.filter(files, extensions):
-      print(os.path.join(root, filename))
-      pictures.append(os.path.join(root, filename))
 
-print("/\--unsorted/sorted--\/")
-pictures.sort()
-for i in range(len(pictures)):
-  print(pictures[i])
-  #path= os.getcwd() + "/sample_picts/" + i 
-  #a = glob.glob(apath)
-  #a.sort()
-  
-#  if a != []:
-#    #print(a)
-#    pictlist = a
-    #print pictlist
-#    pictnum = len(pictlist)
-#    pretimelapse(pictnum, fps)
-      
+def get_pics_paths(root):
+    pics_paths = []
+    for filename in os.listdir(root):
+        filename = os.path.join(root, filename)
+        name, ext = os.path.splitext(filename)
+        if ext.lower() in EXTENSIONS:
+            pics_paths.append(os.path.join(root, filename))
 
-#case $3 in
-#	low)
-#	quality=hd480
-#	;;
-#	med)
-#	quality=hd720
-#	;;
-#	hig)
-#	quality=hd1080
-#	;;
-#	*)
-#	quality=hd480
-#esac 
-#
-#
-## Check origin path
-#if [ ! -e $ORIGIN_PATH ]
-#then
-#    echo Path $ORIGIN_PATH doest not exist
-#    exit 1
-#fi
-#
-## Check video file name does't exist
-#VIDEO_PATH=$OUTPUT_DIR/$VIDEO_FILE_NAME.$FILE_FORMAT
-#count=1
-#while [ -e $VIDEO_PATH ]
-#do
-#    VIDEO_PATH=$OUTPUT_DIR/"$VIDEO_FILE_NAME"_"$count"_.$FILE_FORMAT
-#    count=$((count+1))
-#done
-#
-## Get and create tmpdir
-#tmp_dir=$(mktemp -d --tmpdir=.)
-#
-#if [[ $VERBOSE == 1 ]]
-#then
-#    verbose_option="-v"
-#    ffmpeg_verbose_option="info"
-#else
-#    ffmpeg_verbose_option="quiet"
-#fi
-#
-## Copy original images to a input tmp dir
-#input_dir=$(mktemp -d --tmpdir=.)
-##cp $verbose_option $ORIGIN_PATH* $input_dir/
-#
-#
-## Rename pictures, workaround to ffmpeg bug
-#c=0
-##for file in $inputfiles
-#for file in $(find $ORIGIN_PATH -iname "*.JPG" -type f -exec ls -1rt {} \; | sort)
-#do
-#    #cp $verbose_option "$file" $tmp_dir/$c.JPG
-#    ln -s $verbose_option "$file" $tmp_dir/$c.JPG
-#    c=$(($c+1))
-#done
-#
-## Call the video creation tool
-#echo "Starting video encoding"
-#
-#ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  $VIDEO_PATH
-##ffmpeg -loglevel $ffmpeg_verbose_option -r $FRAME_RATE -i $tmp_dir/%d.JPG -s $quality -vcodec libx264  -pix_fmt yuv420p $VIDEO_PATH
-#
-## Clean tmp files
-##rm -rf $verbose_option $input_dir
-#rm -rf $verbose_option $tmp_dir
-#
-## return video output path
-#echo $VIDEO_PATH
-#du -h $VIDEO_PATH
+    return pics_paths
+
+
+def get_paths(ipath, opath):
+    ipath = os.path.abspath(ipath)
+    opath = os.path.abspath(opath)
+    if not os.path.exists(ipath):
+        sys.stderr.write("Input path does not exists\n")
+        sys.exit(0)
+
+    if os.path.exists(opath):
+        sys.stderr.write("Output path exists\n")
+        sys.exit(0)
+    else:
+        parent = os.path.dirname(opath)
+        try:
+          os.makedirs(parent)
+        except OSError:
+          pass
+
+    return ipath, opath
+
+
+def show_estimated_duration():
+    get_duration(pics_paths, fps)
+    sys.stdout.write("Estimated video duration = %d\n" % duration)
+
+
+def get_duration(pics_paths, fps):
+    picnumber = len(pics_paths)
+
+    return picnumber // fps
+
+
+def sort_by_date(pics_paths):
+    def get_creation_time(filename):
+        return os.path.getmtime(filename)
+
+    pics_paths.sort(key=get_creation_time)
+    return pics_paths
+
+
+def rename_files(pics_paths):
+    # Rename pictures, workaround to ffmpeg bug
+    # sort by creation time
+    sorted_paths = sort_by_date(pics_paths)
+
+    # name them as expected by ffmpeg
+    c = 0
+    pics_paths = []
+    for filename in sorted_paths:
+        name, ext = os.path.splitext(filename)
+        root = os.path.dirname(filename)
+        new_name = os.path.join(root, '%d%s' % (c, ext))
+        os.rename(filename, new_name)
+        pics_paths.append(new_name)
+        c += 1
+    return pics_paths
+
+
+def create_video(ipath, opath, fps, quality):
+    fps = ' -r ' + fps
+    ipath = ' -i ' + os.path.join(ipath, '%d.JPG ')
+    quality =' -s ' + quality
+    stuff = ' -vcodec libx264 -pix_fmt yuv420p '
+    stuff += ' -y '  # overwrite output files
+    stuff += ' -loglevel quiet '
+    command = FFMPEG_BINARY_PATH + fps + ipath + quality + stuff + opath
+    os.system(command)
+
+
+def main(ipath, opath, fps, quality):
+    ipath, opath = get_paths(ipath, opath)
+    quality = get_quality(quality)
+    pics_paths = get_pics_paths(ipath)
+    pics_paths = rename_files(pics_paths)
+    video_path = create_video(ipath, opath, str(fps), quality)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Flimeo, the best time-lapse generator *ever*')
+    parser.add_argument('--ipath', help="path to source files")
+    parser.add_argument('--opath', help="output filename")
+    parser.add_argument('--fps', help="frames per second of the video", type=int, default=25)
+    parser.add_argument('--quality', help="output video quality low|med|hig", type=str, default="med")
+    # parser.add_argument('--ffmpeg-verbose', help="verbosity of ffmpeg")
+
+    args = parser.parse_args()
+    fps = args.fps
+    ipath = os.path.abspath(args.ipath)
+    opath = args.opath
+    quality = args.quality
+
+    main(ipath, opath, fps, quality)

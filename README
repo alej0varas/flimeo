@@ -1,16 +1,17 @@
 README
 ======
 
-dependecies
+Dependecies
 -----------
 
 * ffmpeg
-use install.py to install ffmpeg the first time
+Use install.py to install ffmpeg the first time
 
 
 * PIL
-install pillow (python3-pil on debian-like systems)
+pip install pillow
 
-timelapse
+
+Timelapse
 --------
-use flimeo.py to create your timelapses (tested with a GoPro and a Pentax-K30 as source)
+Use flimeo.py to create your timelapses (tested with a GoPro and a Pentax-K30 as source)

@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import glob
 import os
 import sys
-
-import PIL
 
 
 FFMPEG_BINARY_PATH = os.environ.get('FFMPEG_BINARY_PATH', "local/bin/ffmpeg")

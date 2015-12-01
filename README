@@ -8,10 +8,6 @@ Dependecies
 Use install.py to install ffmpeg the first time
 
 
-* PIL
-pip install pillow
-
-
 Timelapse
 --------
 Use flimeo.py to create your timelapses (tested with a GoPro and a Pentax-K30 as source)

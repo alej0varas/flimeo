@@ -6,6 +6,9 @@ import sys
 
 FFMPEG_BINARY_PATH = os.environ.get('FFMPEG_BINARY_PATH', "local/bin/ffmpeg")
 EXTENSIONS = ['.jpeg', '.jpg', '.raw']
+AGREE_MESSAGE = """You must use --agree argument.
+Our recommendation is to make a copy of your pictures and work with it.
+We don't want to accidentally damage your original pictures.\n"""
 
 
 def get_quality(quality):
@@ -106,6 +109,11 @@ def main(ipath, opath, fps, quality):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Flimeo, the best time-lapse generator *ever*')
+    parser.add_argument(
+        '--agree',
+        help="Explicitly agree that flimeo will modify your file without guarantee",
+        default=False,
+        action='store_true')
     parser.add_argument('--ipath', help="path to source files")
     parser.add_argument('--opath', help="output filename")
     parser.add_argument('--fps', help="frames per second of the video", type=int, default=25)
@@ -113,6 +121,10 @@ if __name__ == "__main__":
     # parser.add_argument('--ffmpeg-verbose', help="verbosity of ffmpeg")
 
     args = parser.parse_args()
+    if not args.agree:
+        sys.stderr.write(AGREE_MESSAGE)
+        sys.exit(1)
+
     fps = args.fps
     ipath = os.path.abspath(args.ipath)
     opath = args.opath

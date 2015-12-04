@@ -36,11 +36,11 @@ def get_paths(ipath, opath):
     opath = os.path.abspath(opath)
     if not os.path.exists(ipath):
         sys.stderr.write("Input path does not exists\n")
-        sys.exit(0)
+        sys.exit(1)
 
     if os.path.exists(opath):
         sys.stderr.write("Output path exists\n")
-        sys.exit(0)
+        sys.exit(1)
     else:
         parent = os.path.dirname(opath)
         try:

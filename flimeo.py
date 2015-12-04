@@ -90,7 +90,7 @@ def rename_files(pics_paths):
 
 def create_video(ipath, opath, fps, quality):
     fps = ' -r ' + fps
-    ipath = ' -i ' + os.path.join(ipath, '%d.JPG ')
+    ipath = ' -i ' + os.path.join(ipath, '%d.jpg ')
     quality =' -s ' + quality
     stuff = ' -vcodec libx264 -pix_fmt yuv420p '
     stuff += ' -y '  # overwrite output files

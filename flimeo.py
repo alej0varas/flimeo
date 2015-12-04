@@ -31,12 +31,17 @@ def get_pics_paths(root):
     return pics_paths
 
 
-def get_paths(ipath, opath):
+def get_ipath(ipath):
     ipath = os.path.abspath(ipath)
-    opath = os.path.abspath(opath)
     if not os.path.exists(ipath):
         sys.stderr.write("Input path does not exists\n")
         sys.exit(1)
+
+    return ipath
+
+
+def get_opath(opath):
+    opath = os.path.abspath(opath)
 
     if os.path.exists(opath):
         sys.stderr.write("Output path exists\n")
@@ -48,12 +53,21 @@ def get_paths(ipath, opath):
         except OSError:
           pass
 
+    return opath
+
+
+def get_paths(ipath, opath):
+    ipath = get_ipath(ipath)
+    opath = get_opath(opath)
+
     return ipath, opath
 
 
-def show_estimated_duration():
-    get_duration(pics_paths, fps)
-    sys.stdout.write("Estimated video duration = %d\n" % duration)
+def show_estimated_duration(ipath, fps):
+    ipath = get_ipath(ipath)
+    pics_paths = get_pics_paths(ipath)
+    duration = get_duration(pics_paths, fps)
+    sys.stdout.write("Estimated video duration = %d seconds\n" % duration)
 
 
 def get_duration(pics_paths, fps):
@@ -110,6 +124,12 @@ def main(ipath, opath, fps, quality):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Flimeo, the best time-lapse generator *ever*')
     parser.add_argument(
+        '--get-duration',
+        help="[Utils]Get the estimated duration of the output video in seconds",
+        default=False,
+        action='store_true')
+
+    parser.add_argument(
         '--agree',
         help="Explicitly agree that flimeo will modify your file without guarantee",
         default=False,
@@ -121,12 +141,17 @@ if __name__ == "__main__":
     # parser.add_argument('--ffmpeg-verbose', help="verbosity of ffmpeg")
 
     args = parser.parse_args()
+    fps = args.fps
+    ipath = os.path.abspath(args.ipath)
+
+    if args.get_duration:
+        show_estimated_duration(ipath, fps)
+        exit(0)
+
     if not args.agree:
         sys.stderr.write(AGREE_MESSAGE)
         sys.exit(1)
 
-    fps = args.fps
-    ipath = os.path.abspath(args.ipath)
     opath = args.opath
     quality = args.quality
 

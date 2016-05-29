@@ -7,11 +7,9 @@ import sys
 import tarfile
 import tempfile
 try:
-  import urllib.request
+  import urllib.request as urllib
 except ImportError:
-  print("Please use python3 for this")
-  sys.exit(0)
-
+  import urllib
 
 
 FAIL_TO_DOWNLOAD = 1
@@ -48,14 +46,17 @@ def main():
     #mkdir -p $FFMPEG_INSTALL_PATH
     FFMPEG_INSTALL_PATH = os.environ.get('FFMPEG_INSTALL_PATH', 'local/bin')
     logging.debug("ffmpeg install path: {}".format(FFMPEG_INSTALL_PATH))
-    os.makedirs(FFMPEG_INSTALL_PATH, exist_ok=True)
+    if os.path.isdir(FFMPEG_INSTALL_PATH):
+      print('ffmpeg install path already exist {}'.format(FFMPEG_INSTALL_PATH))
+      exit(1)
+    os.makedirs(FFMPEG_INSTALL_PATH)
     logging.debug("created install path")
 
     #wget $FFMPEG_BINARY_URL --output-document=tmp/ffmpeg.tar.gz
     FFMPEG_BINARY_URL = os.environ.get('FFMPEG_BINARY_URL', 'http://ffmpeg.gusari.org/static/{0}bit/ffmpeg.static.{0}bit.latest.tar.gz'.format(architecture))
     logging.debug("ffmpeg binary url: {}".format(FFMPEG_BINARY_URL))
     try:
-        local_filename, headers = urllib.request.urlretrieve(FFMPEG_BINARY_URL)
+        local_filename, headers = urllib.urlretrieve(FFMPEG_BINARY_URL)
     except:
         sys.stdout.write('Failed to download ffmpeg\n')
         cleanup(download_directory)
@@ -70,7 +71,7 @@ def main():
     #cp tmp/ffmpeg $FFMPEG_INSTALL_PATH
     content.extract('ffmpeg', FFMPEG_INSTALL_PATH)
     content.close()
-    urllib.request.urlcleanup()
+    urllib.urlcleanup()
 
     cleanup(download_directory)
 

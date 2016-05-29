@@ -6,18 +6,15 @@ import sys
 
 FFMPEG_BINARY_PATH = os.environ.get('FFMPEG_BINARY_PATH', "local/bin/ffmpeg")
 EXTENSIONS = ['.jpeg', '.jpg', '.raw']
-AGREE_MESSAGE = """You must use --agree argument.
-Our recommendation is to make a copy of your pictures and work with it.
-We don't want to accidentally damage your original pictures.\n"""
+QUALITIES = {
+    'low': 'hd480',
+    'med': 'hd720',
+    'hig': 'hd1080',
+}
 
 
 def get_quality(quality):
-    qualities = {
-        'low': 'hd480',
-        'med': 'hd720',
-        'hig': 'hd1080',
-    }
-    return qualities[quality]
+    return QUALITIES[quality]
 
 
 def get_pics_paths(root):
@@ -31,49 +28,42 @@ def get_pics_paths(root):
     return pics_paths
 
 
-def get_ipath(ipath):
-    ipath = os.path.abspath(ipath)
-    if not os.path.exists(ipath):
-        sys.stderr.write("Input path does not exists\n")
+def get_input_path(input_path):
+    input_path = os.path.abspath(input_path)
+    if not os.path.exists(input_path):
+        sys.stderr.write("flimeo: Input path does not exists\n")
         sys.exit(1)
 
-    return ipath
+    return input_path
 
 
-def get_opath(opath):
-    opath = os.path.abspath(opath)
+def get_output_path(output_path):
+    output_path = os.path.abspath(output_path)
 
-    if os.path.exists(opath):
-        sys.stderr.write("Output path exists\n")
+    if os.path.exists(output_path):
+        sys.stderr.write("flimeo: Output path exists\n")
         sys.exit(1)
     else:
-        parent = os.path.dirname(opath)
+        parent = os.path.dirname(output_path)
         try:
           os.makedirs(parent)
         except OSError:
           pass
 
-    return opath
+    return output_path
 
 
-def get_paths(ipath, opath):
-    ipath = get_ipath(ipath)
-    opath = get_opath(opath)
+def get_paths(input_path, output_path):
+    input_path = get_input_path(input_path)
+    output_path = get_output_path(output_path)
 
-    return ipath, opath
-
-
-def show_estimated_duration(ipath, fps):
-    ipath = get_ipath(ipath)
-    pics_paths = get_pics_paths(ipath)
-    duration = get_duration(pics_paths, fps)
-    sys.stdout.write("Estimated video duration = %d seconds\n" % duration)
+    return input_path, output_path
 
 
 def get_duration(pics_paths, fps):
     picnumber = len(pics_paths)
 
-    return picnumber // fps
+    return picnumber / fps
 
 
 def sort_by_date(pics_paths):
@@ -94,6 +84,7 @@ def rename_files(pics_paths):
     pics_paths = []
     for filename in sorted_paths:
         name, ext = os.path.splitext(filename)
+        ext = ext.lower()
         root = os.path.dirname(filename)
         new_name = os.path.join(root, '%d%s' % (c, ext))
         os.rename(filename, new_name)
@@ -102,57 +93,48 @@ def rename_files(pics_paths):
     return pics_paths
 
 
-def create_video(ipath, opath, fps, quality):
+def create_video(input_path, output_path, fps, quality):
     fps = ' -r ' + fps
-    ipath = ' -i ' + os.path.join(ipath, '%d.jpg ')
+    input_path = ' -i ' + os.path.join(input_path, '%d.jpg ')
     quality =' -s ' + quality
     stuff = ' -vcodec libx264 -pix_fmt yuv420p '
     stuff += ' -y '  # overwrite output files
     stuff += ' -loglevel quiet '
-    command = FFMPEG_BINARY_PATH + fps + ipath + quality + stuff + opath
+    command = FFMPEG_BINARY_PATH + fps + input_path + quality + stuff + output_path
     os.system(command)
 
 
-def main(ipath, opath, fps, quality):
-    ipath, opath = get_paths(ipath, opath)
-    quality = get_quality(quality)
-    pics_paths = get_pics_paths(ipath)
+def show_estimated_duration(options):
+    input_path = get_input_path(options.input_path)
+    pics_paths = get_pics_paths(input_path)
+    duration = get_duration(pics_paths, options.fps)
+    sys.stdout.write("flimeo: Estimated video duration at {} fps = {} seconds\n".format(options.fps, duration))
+
+
+def main(options):
+    input_path, output_path = get_paths(options.input_path, options.output_path)
+    quality = get_quality(options.quality)
+    pics_paths = get_pics_paths(input_path)
     pics_paths = rename_files(pics_paths)
-    video_path = create_video(ipath, opath, str(fps), quality)
+    video_path = create_video(input_path, output_path, str(options.fps), quality)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Flimeo, the best time-lapse generator *ever*')
-    parser.add_argument(
-        '--get-duration',
-        help="[Utils]Get the estimated duration of the output video in seconds",
-        default=False,
-        action='store_true')
+    parser = argparse.ArgumentParser(prog='Flimeo', description='The best time-lapse generator *ever*')
 
-    parser.add_argument(
-        '--agree',
-        help="Explicitly agree that flimeo will modify your file without guarantee",
-        default=False,
-        action='store_true')
-    parser.add_argument('--ipath', help="path to source files")
-    parser.add_argument('--opath', help="output filename")
-    parser.add_argument('--fps', help="frames per second of the video", type=int, default=25)
-    parser.add_argument('--quality', help="output video quality low|med|hig", type=str, default="med")
-    # parser.add_argument('--ffmpeg-verbose', help="verbosity of ffmpeg")
+    subparsers = parser.add_subparsers()
+
+    parser_a = subparsers.add_parser('get-duration', help='Get the estimated duration of the output video in seconds')
+    parser_a.add_argument('--fps', help="frames per second of the video", type=int, default=25)
+    parser_a.add_argument('input_path', help="path to source files")
+    parser_a.set_defaults(func=show_estimated_duration)
+
+    parser_b = subparsers.add_parser('make-video', help='Make the video')
+    parser_b.add_argument('--fps', help="frames per second of the video", type=int, default=25)
+    parser_b.add_argument('--quality', help="output video quality", choices=QUALITIES.keys(), type=str, default="med")
+    parser_b.add_argument('input_path', help="path to source files")
+    parser_b.add_argument('output_path', help="output filename")
+    parser_b.set_defaults(func=main)
 
     args = parser.parse_args()
-    fps = args.fps
-    ipath = os.path.abspath(args.ipath)
-
-    if args.get_duration:
-        show_estimated_duration(ipath, fps)
-        exit(0)
-
-    if not args.agree:
-        sys.stderr.write(AGREE_MESSAGE)
-        sys.exit(1)
-
-    opath = args.opath
-    quality = args.quality
-
-    main(ipath, opath, fps, quality)
+    args.func(args)
